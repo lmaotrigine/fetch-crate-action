@@ -132,9 +132,10 @@ async function main() {
   try {
     const owner = core.getInput('owner', { required: true });
     const name = core.getInput('name', { required: true });
+    const bin = core.getInput('bin');
     const githubToken = core.getInput('github-token');
     const version_spec = core.getInput('version');
-    const crate = await checkOrInstallCrate({ owner, name, version_spec }, { auth: githubToken });
+    const crate = await checkOrInstallCrate({ owner, name, version_spec, bin }, { auth: githubToken });
     core.addPath(crate.dir);
     core.info(`Successfully setup ${crate.name} v${crate.version}`);
   } catch (err) {

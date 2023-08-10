@@ -17040,9 +17040,10 @@ async function main() {
     try {
         const owner = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('owner', { required: true });
         const name = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('name', { required: true });
+        const bin = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('bin');
         const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('github-token');
         const version_spec = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('version');
-        const crate = await checkOrInstallCrate({ owner, name, version_spec }, { auth: githubToken });
+        const crate = await checkOrInstallCrate({ owner, name, version_spec, bin }, { auth: githubToken });
         _actions_core__WEBPACK_IMPORTED_MODULE_0__.addPath(crate.dir);
         _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Successfully setup ${crate.name} v${crate.version}`);
     }
