@@ -26,7 +26,7 @@ function getTargets(): string[] {
 }
 
 export interface Options {
-  auth: any;
+  auth: string;
 }
 
 export interface Crate {
@@ -52,10 +52,10 @@ interface Release {
 async function getRelease(crate: Crate, options?: Options): Promise<Release> {
   const targets = getTargets();
   const { owner, name, version_spec } = crate;
-  const octokit = getOctokit(options?.auth);
-  return octokit.paginate(octokit.rest.repos.listReleases, { owner, repo: name }, (response, done) => {
+  const octokit = getOctokit(options?.auth ?? '');
+  return octokit.paginate(octokit.rest.repos.listReleases, { owner: owner, repo: name }, (response, done) => {
     const releases = response.data.map((release) => {
-      const asset = release.assets.find((asset) => targets.some((target) => asset.name.includes(target)));
+      const asset = release.assets.find((a) => targets.some((target) => a.name.includes(target)));
       if (asset) {
         return {
           version: release.tag_name.replace(/^v/, ''),
@@ -63,15 +63,15 @@ async function getRelease(crate: Crate, options?: Options): Promise<Release> {
         };
       }
     })
-    .filter((release) => Boolean(release))
-    .filter((release) => release && version_spec ? satisfies(release.version, version_spec) : true);
+      .filter((release) => Boolean(release))
+      .filter((release) => release && version_spec ? satisfies(release.version, version_spec) : true);
     if (releases.length > 0) {
       done();
     }
     return releases;
   }).then((releases) => {
-    const release = releases.find((release) => release != null);
-    if (release === undefined) {
+    const release = releases.find((r) => Boolean(r));
+    if (!release) {
       throw new Error(`no releases for ${name} matching version specifier ${version_spec}`);
     }
     return release;
@@ -125,7 +125,7 @@ export async function checkOrInstallCrate(crate: Crate, options?: Options): Prom
     await handleBadBinaryPermissions(crate, dir);
   }
   const version = basename(dirname(dir));
-  return { ...crate, version, dir };
+  return { ...crate, version: version, dir: dir };
 }
 
 async function main() {
@@ -135,7 +135,10 @@ async function main() {
     const bin = core.getInput('bin');
     const githubToken = core.getInput('github-token');
     const version_spec = core.getInput('version');
-    const crate = await checkOrInstallCrate({ owner, name, version_spec, bin }, { auth: githubToken });
+    const crate = await checkOrInstallCrate(
+      { owner: owner, name: name, version_spec: version_spec, bin: bin },
+      { auth: githubToken },
+    );
     core.addPath(crate.dir);
     core.info(`Successfully setup ${crate.name} v${crate.version}`);
   } catch (err) {

@@ -2,6 +2,11 @@
   "name": "fetch-crate-action",
   "module": "src/index.ts",
   "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=20",
+    "npm": ">=8"
+  },
   "devDependencies": {
     "@types/node": "^20.4.9",
     "@types/semver": "^7.5.0",
@@ -14,7 +19,15 @@
     "typescript": "latest"
   },
   "scripts": {
-    "build": "ncc build src/index.ts -o dist"
+    "postinstall": "bunx husky install",
+    "all": "bun run lint",
+    "lint": "eslint ./src/*.ts",
+    "lint:fix": "eslint --fix ./src/*.ts",
+    "build": "ncc build ./src/index.ts -o dist --minify",
+    "tsc": "tsc"
+  },
+  "lint-staged": {
+    "src/*.ts": ["eslint"]
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
